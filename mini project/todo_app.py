@@ -87,6 +87,15 @@ class TodoApp:
             raise ValueError("Task not found")
         task.completed  = not task.completed
         self._save()
+    
+    def delete_task(self, task_id: int) -> None:
+        task = self.find_task_by_id(task_id)
+        if task is None:
+            raise ValueError(f"Task with ID {task_id} not found.")
+        
+        self.tasks.remove(task)  
+        self._save()
+
 
 def display_tasks(tasks: List[Task]) -> None:
     if not tasks:
@@ -109,6 +118,7 @@ def main() -> None:
         print("2. View Todos")
         print("3. Update Todos")
         print("4. Toggle completion")
+        print("5. Delete Todo")
         print("0. Exit")
         choice = input("Choose an option: ").strip()
 
@@ -135,6 +145,13 @@ def main() -> None:
                 task_id = int(input("Enter task ID to toggle: ").strip())
                 app.toggle_compl(task_id)
                 print(f"Toggled completion status for task {task_id}.")
+            except ValueError as exc:
+                print(exc)
+        elif choice == "5":
+            try:
+                task_id = int(input("Enter task ID to delete: ").strip())
+                app.delete_task(task_id)
+                print(f"Deleted task {task_id}.")
             except ValueError as exc:
                 print(exc)
         elif choice == "0":
