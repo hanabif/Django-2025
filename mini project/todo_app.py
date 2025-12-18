@@ -53,6 +53,12 @@ class TodoApp:
     def _next_id(self) -> int:
         return max((task.id for task in self.tasks), default=0) + 1
 
+    def find_task_by_id(self, task_id: int) -> Task | None:
+        for task in self.tasks:
+            if task.id == task_id:
+                return task
+        raise ValueError(f"Task with ID {task_id} not found.")
+
     def add_task(self, title: str) -> Task:
         clean_title = title.strip()
         if not clean_title:
@@ -65,6 +71,22 @@ class TodoApp:
     def list_tasks(self) -> List[Task]:
         return sorted(self.tasks, key=lambda t: t.id)
 
+    def update_task_title(self, task_id: int, new_title:str) -> None:
+        del_task = self.find_task_by_id(task_id)
+        if not del_task:
+            raise ValueError(f"Task with ID {task_id} not found.") 
+        new_title = new_title.strip()
+        if not new_title:
+            raise ValueError("Title cannot be empty.")
+        del_task.title = new_title
+        self._save()
+
+    def toggle_compl(self, task_id: int) -> None:
+        task =self.find_task_by_id(task_id)
+        if task is None:
+            raise ValueError("Task not found")
+        task.completed  = not task.completed
+        self._save()
 
 def display_tasks(tasks: List[Task]) -> None:
     if not tasks:
@@ -76,6 +98,7 @@ def display_tasks(tasks: List[Task]) -> None:
         print(f"[{task.id}] {task.title} - {status}")
 
 
+
 def main() -> None:
     storage_path = Path(__file__).parent / "todos.json"
     app = TodoApp(storage_path)
@@ -84,6 +107,8 @@ def main() -> None:
         print("\nTodo App")
         print("1. Add Todo")
         print("2. View Todos")
+        print("3. Update Todos")
+        print("4. Toggle completion")
         print("0. Exit")
         choice = input("Choose an option: ").strip()
 
@@ -97,12 +122,27 @@ def main() -> None:
 
         elif choice == "2":
             display_tasks(app.list_tasks())
-
+        elif choice == '3':
+            try:
+                task_id = int(input("Enter task ID: ".strip()))
+                new_title = input("enter new titile: ").strip()
+                app.update_task_title(task_id, new_title)
+                print(f'updated task {task_id}')
+            except ValueError as exc:
+                print(exc)
+        elif choice == "4":
+            try:
+                task_id = int(input("Enter task ID to toggle: ").strip())
+                app.toggle_compl(task_id)
+                print(f"Toggled completion status for task {task_id}.")
+            except ValueError as exc:
+                print(exc)
         elif choice == "0":
             print("Goodbye!")
             break
         else:
             print("Invalid option. Please try again.")
+
 
 
 if __name__ == "__main__":
