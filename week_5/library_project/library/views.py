@@ -1,9 +1,10 @@
-from django.shortcuts import render
-from .models import Book, Member, Loan
+from django.shortcuts import get_object_or_404, render
+from .models import Book, Category, Member, Loan
 from django.http import JsonResponse
 from django.views import View
-# Create your views here.
+from django.db.models import Count, Q
 
+#Function-Based View (FBV)
 def book_list(request):
     books = Book.objects.select_related('author').prefetch_related('categories')
 
@@ -17,7 +18,7 @@ def book_list(request):
         })
     return JsonResponse(data, safe = False)
 
-
+#Class-Based View (CBV)
 class CreateLoanView(View):
     def post(self, request, book_id):
         member_id = request.POST.get('member_id')
@@ -33,3 +34,29 @@ class CreateLoanView(View):
         book.save()
 
         return JsonResponse({'message': 'Loan created successfully'})
+    
+# Advanced ORM Queries
+def books_never_loaned(request):
+    books = Book.objects.filter(loans__isnull = True)
+
+    data = [book.title for book in books]
+    return JsonResponse(data, safe=False)
+
+#Science books by Isaac Newton
+Book.objects.filter(
+    categories__name = 'Science',
+    author__name = 'Isaac Newton'
+)
+
+#Top 3 members with most active loans
+Member.objects.annotate(
+    active_loans = Count(
+        'loans',
+        filter = Q(loans__return_date__isnull = True)
+    )
+).order_by('-active_loans')[:3]
+
+#Count books per category
+Category.objects.annotate(
+    book_count=Count('books')
+)
