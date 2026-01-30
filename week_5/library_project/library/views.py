@@ -3,6 +3,8 @@ from .models import Book, Category, Member, Loan
 from django.http import JsonResponse
 from django.views import View
 from django.db.models import Count, Q
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 #Function-Based View (FBV)
 def book_list(request):
@@ -19,6 +21,7 @@ def book_list(request):
     return JsonResponse(data, safe = False)
 
 #Class-Based View (CBV)
+@method_decorator(csrf_exempt, name='dispatch')
 class CreateLoanView(View):
     def post(self, request, book_id):
         member_id = request.POST.get('member_id')
@@ -26,7 +29,7 @@ class CreateLoanView(View):
         book = get_object_or_404(Book, id = book_id)
         member = get_object_or_404(Member, id = member_id)
 
-        if book.availabe_copies <= 0:
+        if book.available_copies <= 0:
             return JsonResponse({'error': 'Book not available'}, status = 400)
         
         Loan.objects.create(book=book, member=member)
