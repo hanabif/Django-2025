@@ -6,7 +6,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db import IntegrityError
-
+from datetime import datetime
 from api.models import Book, Author, Category
 
 
@@ -75,11 +75,20 @@ class BookCreateView(View):
                     'error': f'Author with id {data["author_id"]} not found'
                 }, status=404)
             
-            
+            published_date = None
+            if 'published_date' in data and data['published_date']:
+                try:
+                    published_date = datetime.strptime(data['published_date'], '%Y-%m-%d').date()
+                except ValueError:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Invalid date format for published_date. Use YYYY-MM-DD'
+                    }, status=400)
+                
             book = Book.objects.create(
                 title=data['title'].strip(),
                 author=author,
-                published_date=data.get('published_date'),
+                published_date= published_date,
                 isbn=data['isbn'],
                 price=data['price'],
                 available=data.get('available', True)
@@ -127,14 +136,23 @@ class BookUpdateView(View):
            
             if 'title' in data:
                 book.title = data['title'].strip()
-            if 'published_date' in data:
-                book.published_date = data['published_date']
             if 'price' in data:
                 book.price = data['price']
             if 'available' in data:
                 book.available = data['available']
             
-            
+            if 'published_date' in data:
+                if data['published_date']:
+                    try:
+                        book.published_date = datetime.strptime(data['published_date'], '%Y-%m-%d').date()
+                    except ValueError:
+                        return JsonResponse({
+                            'success': False,
+                            'error': 'Invalid date format for published_date. Use YYYY-MM-DD'
+                        }, status=400)
+                else:
+                    book.published_date = None
+                    
             if 'isbn' in data:
                 if Book.objects.filter(isbn=data['isbn']).exclude(id=id).exists():
                     return JsonResponse({

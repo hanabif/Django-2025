@@ -6,7 +6,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db.models import Count
-
+from datetime import datetime
 from api.models import Author
 
 
@@ -50,10 +50,21 @@ class AuthorCreateView(View):
                     'error': 'Name is required'
                 }, status=400)
             
+            date_of_birth = None
+            if 'date_of_birth' in data and data['date_of_birth']:
+                try:
+                    
+                    date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date()
+                except ValueError:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Invalid date format. Use YYYY-MM-DD'
+                    }, status=400)
+                
             author = Author.objects.create(
                 name=data['name'].strip(),
                 bio=data.get('bio', ''),
-                date_of_birth=data.get('date_of_birth')
+                date_of_birth=date_of_birth
             )
             
             return JsonResponse({
@@ -86,7 +97,16 @@ class AuthorUpdateView(View):
             if 'bio' in data:
                 author.bio = data['bio']
             if 'date_of_birth' in data:
-                author.date_of_birth = data['date_of_birth']
+                if data['date_of_birth']:
+                    try:
+                        author.date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d').date()
+                    except ValueError:
+                        return JsonResponse({
+                            'success': False,
+                            'error': 'Invalid date format. Use YYYY-MM-DD'
+                        }, status=400)
+                else:
+                    author.date_of_birth = None
             
             author.save()
             

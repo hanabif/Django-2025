@@ -5,12 +5,13 @@ from . import views
 urlpatterns = [
     
     path('authors/', views.AuthorListView.as_view(), name='author-list'),
-    path('authors/<int:id>/', views.AuthorDetailView.as_view(), name='author-detail'),
+    path('authors/book-count/', views.AuthorBookCountView.as_view(), name='author-book-count'),
     path('authors/create/', views.AuthorCreateView.as_view(), name='author-create'),
+    path('authors/<int:id>/', views.AuthorDetailView.as_view(), name='author-detail'),
     path('authors/<int:id>/update/', views.AuthorUpdateView.as_view(), name='author-update'),
     path('authors/<int:id>/delete/', views.AuthorDeleteView.as_view(), name='author-delete'),
     path('authors/<int:id>/books/', views.AuthorBooksView.as_view(), name='author-books'),
-    path('authors/book-count/', views.AuthorBookCountView.as_view(), name='author-book-count'),
+  
 
     
     path('books/', views.BookListView.as_view(), name='book-list'),

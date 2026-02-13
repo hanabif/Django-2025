@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import datetime
 
 # Create your models here.
 class Author(models.Model):
@@ -20,7 +21,7 @@ class Author(models.Model):
             'name': self.name,
             'bio': self.bio,
             'date_of_birth': self.date_of_birth.isoformat() if self.date_of_birth else None,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
 class Category(models.Model):
@@ -74,10 +75,10 @@ class Book(models.Model):
             'isbn': self.isbn,
             'price': str(self.price),
             'available': self.available,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
-        if include_author:
+        if include_author and self.author:
             data['author'] = self.author.to_dict()
         if include_categories:
             data['categories'] = [cat.to_dict() for cat in self.categories.all()]
